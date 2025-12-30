@@ -33,9 +33,6 @@ whenever code is pushed to a specific GitHub branch.
 ├── .env.local # server only (not committed)
 └── .git
 
-yaml
-Copy code
-
 ---
 
 ## 1️⃣ EC2 Server Setup (One Time)
@@ -44,70 +41,76 @@ Copy code
 ```bash
 ssh -i your-key.pem ubuntu@EC2_PUBLIC_IP
 Install required tools
-bash
-Copy code
+```
+---
+```bash
 sudo apt update
 sudo apt install -y git nodejs npm
 sudo npm install -g pm2
+```
+---
 2️⃣ Clone Project on EC2 (One Time)
-bash
-Copy code
+```bash
 cd /home/ubuntu
 git clone git@github.com:YOUR_USERNAME/YOUR_REPO.git
 cd YOUR_REPO
 git checkout aws-uploaded-code
+```
+---
 3️⃣ Environment Variables (EC2 Only)
 Create .env.local:
 
-bash
-Copy code
+```bash
 nano .env.local
+```
+---
 Example:
 
 env
-Copy code
 MONGODB_URI=mongodb://127.0.0.1:27017/dbname
 NEXTAUTH_SECRET=your_secret
 ⚠️ Never commit .env.local
 
 Ensure .gitignore includes:
+---
 
-bash
-Copy code
 .env*
+---
 4️⃣ Build & Run with PM2 (One Time)
-bash
-Copy code
+```bash
+
 npm install
 npm run build
 pm2 start npm --name PROJECT_NAME -- start
 pm2 save
+```
+---
 Check status:
-
-bash
-Copy code
+```bash
 pm2 status
+```
+---
 5️⃣ SSH Key Setup for Auto Deploy (One Time)
 Generate SSH key on EC2
-bash
-Copy code
+```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -C "ec2-auto-deploy"
+```
+---
 ➡️ Press ENTER for passphrase
 
 Copy public key
 bash
-Copy code
 cat ~/.ssh/id_ed25519.pub
 Add key to GitHub
 vbnet
-Copy code
 GitHub → Settings → SSH and GPG keys → New SSH key
 6️⃣ Switch EC2 Repo to SSH (Important)
-bash
-Copy code
+```bash
 cd /home/ubuntu/YOUR_REPO
 git remote set-url origin git@github.com:YOUR_USERNAME/YOUR_REPO.git
 git pull origin aws-uploaded-code
+```
+---
 ✅ No username or password should be asked.
 
 7️⃣ Add GitHub Secrets (Required)
@@ -123,11 +126,12 @@ EC2_KEY	Private SSH key (id_ed25519)
 8️⃣ GitHub Actions Workflow
 Create the file:
 
-bash
-Copy code
+```bash
 .github/workflows/deploy.yml
+```
+---
 yaml
-Copy code
+```
 name: Deploy to AWS EC2
 
 on:
@@ -155,6 +159,8 @@ jobs:
             npm install
             npm run build
             pm2 restart PROJECT_NAME --update-env || pm2 start npm --name PROJECT_NAME -- start
+```
+---
 9️⃣ Deployment Flow (How It Works)
 armasm
 Copy code
@@ -175,21 +181,22 @@ LIVE 🚀
 From local machine:
 
 bash
-Copy code
 git push origin aws-uploaded-code
 ✅ No manual SSH required.
 
 🧪 Verify on EC2
 bash
-Copy code
+```
 pm2 logs PROJECT_NAME
 git log -1 --oneline
+```
 ⚠️ Common Issues & Fixes
 ❌ Changes not showing
 bash
-Copy code
+```
 rm -rf .next
 npm run build
+```
 pm2 restart PROJECT_NAME
 ❌ GitHub Action is green but no update
 ✔ Check correct project path in deploy.yml
@@ -214,7 +221,6 @@ pm2 restart PROJECT_NAME
 Happy Deploying 🚀
 
 markdown
-Copy code
 
 ---
 
